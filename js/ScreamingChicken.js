@@ -7,6 +7,9 @@ var BackgroundMusicAudio = null
 var Audios = new Array()
 var CurrentAudioIndex = 0
 var ClickNum = 0
+var DisplayFrames = 0
+var RandomChiken = 0
+
 
 // 设置 Cookie
 function SetCookie(Name, Value, ExpireDays) {
@@ -84,6 +87,7 @@ window.onload = async function () {
     await ImageLoader('Chicken_01', './images/Chicken_01.png')
     await ImageLoader('Chicken_02', './images/Chicken_02.png')
     await ImageLoader('Chicken_03', './images/Chicken_03.png')
+    await ImageLoader('Chicken_04', './images/Chicken_04.png')
 
     window.setInterval(function () {
         CTX.clearRect(0, 0, Canvas.clientWidth, Canvas.clientHeight)
@@ -95,15 +99,22 @@ window.onload = async function () {
 }
 
 function OnCanvasClick(e) {
+    let Texts = [
+        '发财+1 发发发！',
+        '暴富+1 发财+1',
+    ]
+
     Hits.push({
         X: e.offsetX + (Math.random() * 500 - 250),
         Y: e.offsetY,
-        Text: '尖叫+1 快乐+1',
+        Text: Texts[Math.floor(Math.random() * Texts.length)],
         Duration: 1.0
     })
 
     ClickNum = GetClickNum()
     ClickNum++
+    DisplayFrames = 2
+    RandomChiken = Math.floor(Math.random() * 3)
     SetClickNum(ClickNum)
 }
 
@@ -116,21 +127,19 @@ function OnCanvasMouseDown(e) {
         BackgroundMusicAudio.play()
     }
 
-    if (Audios.length < 3) {
+    let AudioSound = Audios[0]
+    if (AudioSound && AudioSound.currentTime >= AudioSound.duration - 0.1) {
+        Audios.splice(0, 1)
+    }
+
+    if (Audios.length < 5) {
         let ChickenAudios = ['./sounds/Chicken_01.mp3', './sounds/Chicken_02.mp3', './sounds/Chicken_03.mp3']
         let ChickenAudio = new Audio(ChickenAudios[Math.floor(Math.random() * 3)])
         ChickenAudio.loop = false
+        ChickenAudio.volume = Math.random() * 0.5 + 0.5
+        ChickenAudio.playbackRate = Math.random() * 0.8 + 0.2
         ChickenAudio.play()
         Audios.push(ChickenAudio)
-    }
-    else {
-        let Audio = Audios[CurrentAudioIndex]
-        if (Audio && Audio.currentTime >= Audio.duration) {
-            Audio.currentTime = 0
-            Audio.play()
-
-            CurrentAudioIndex = (CurrentAudioIndex + 1) % 3
-        }
     }
 }
 
@@ -142,8 +151,9 @@ function Draw() {
     let DrawX = Canvas.clientWidth * 0.5
     let DrawY = Canvas.clientHeight * 0.5
     let Image = null
-    if (bMousePressed) {
-        Image = Images.get('Chicken_02')
+    if (bMousePressed || DisplayFrames > 0) {
+        let Index = RandomChiken + 2
+        Image = Images.get('Chicken_' + (Index < 10 ? '0' + Index : Index))
         CTX.fillStyle = '#00ff00'
     }
     else {
@@ -174,5 +184,9 @@ function Draw() {
             Hits.splice(i, 1)
             break
         }
+    }
+
+    if (DisplayFrames > 0) {
+        --DisplayFrames
     }
 }
